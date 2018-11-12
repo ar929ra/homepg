@@ -45,6 +45,11 @@ a.article-title:hover {
   white-space: pre-line;
 }
 
+.scrolldiv{
+  overflow-y: scroll;
+  height: 200px;
+}
+
 .article-img {
   height: 65px;
   width: 65px;
