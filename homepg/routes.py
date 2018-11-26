@@ -14,16 +14,16 @@ def my_home():
     if not current_user.is_authenticated:
         return render_template('home.html')
 
-    else:
-        household = User.query.filter_by(email = current_user.email).first()
-        household_id = household.household_id
+    this_user = User.query.filter_by(email = current_user.email).first()
 
     form = CreateHome()
     if form.validate_on_submit():
         home = Household(name = form.name.data)
-        print(home.id)
+        this_user.households.append(home)
+        db.session.commit()
 
-    return render_template('my_home.html', household = household_id, form = form)
+    household_len = len(this_user.households)
+    return render_template('my_home.html', household = household_len, form = form)
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
