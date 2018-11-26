@@ -1,13 +1,29 @@
 from flask import render_template, url_for, flash, redirect, request
 from homepg import app, db, bcrypt
-from homepg.models import User
-from homepg.forms import RegistrationForm, LoginForm
+from homepg.models import User, Household
+from homepg.forms import RegistrationForm, LoginForm, CreateHome
 from flask_login import login_user, current_user, logout_user, login_required
 
 @app.route("/")
 @app.route("/home")
 def home():
     return render_template('home.html')
+
+@app.route("/my_home", methods=['GET', 'POST'])
+def my_home():
+    if not current_user.is_authenticated:
+        return render_template('home.html')
+
+    else:
+        household = User.query.filter_by(email = current_user.email).first()
+        household_id = household.household_id
+
+    form = CreateHome()
+    if form.validate_on_submit():
+        home = Household(name = form.name.data)
+        print(home.id)
+
+    return render_template('my_home.html', household = household_id, form = form)
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
@@ -31,7 +47,7 @@ def register():
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('my_home'))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -40,7 +56,7 @@ def login():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('home'))
+            return redirect(next_page) if next_page else redirect(url_for('my_home'))
 
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
