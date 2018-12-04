@@ -47,6 +47,116 @@
   			</div> 
   		</div>
  	{% else %}
+ 		<div class="container">
+ 			<div class="row">
+ 				<div class="col-md-8">
+ 					<h2>Household Members</h2>
+ 				</div>
+ 				<div class="col-md-4">
+ 					<div class="row">
+ 						<div class="col-sm-6">
+ 							<h3>Things to Do</h3>
+ 						</div>
+ 						<div class="col-sm-6 text-right">
+ 							<i class="fas fa-plus" data-toggle="modal" data-target="#myModal2"></i>
+						</div>
+					</div>
+					<div class="row">
+						<div id="myModal2" class="modal fade" role="dialog">
+								  <div class="modal-dialog">
 
+								    <!-- Modal content-->
+								    <div class="modal-content">
+
+								    	Activity Name:<br>
+										 <input id='activity-name' type="text" name="name"><br>
+										Activity Description:<br>
+										 <input id='activity-desc' type="text" name="description"><br>
+
+									    <button id="activity-submit" type="button" class="btn btn-default" data-dismiss="modal">Submit</button>
+								        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+								    </div>
+								</div>
+						</div>
+						<div class="col-sm-12" style="overflow-y: scroll; height:400px;">
+							<div>
+								<div class="list-group" id="activities">
+									{% for activity in activities %}
+			        					<div class="row activity">
+				        					<div class="col-sm-10"> 
+				        						<button type="button" class="list-group-item list-group-item-action">
+				        						{{ activity.name }}</button>
+				        					</div>
+				        					<div class="col-sm-2">
+				        						<i class="fas fa-times Absolute-Center Sub delete-activity"></i>
+				        					</div>
+				        				</div>
+									{% endfor %}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+ 			</div>
+ 		</div>
+
+ 		<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+ 		<script>
+			$(document).ready(function(){
+
+			    $('#activity-submit').click(function(e) {
+			        // prevent form submission
+			        e.preventDefault();
+
+			        var name = $('#activity-name').val();
+			        var desc = $('#activity-desc').val();
+
+			        $('#activities').append(
+			        	'<div class="row activity"><div class="col-sm-10">' + 
+			        	'<button type="button" class="list-group-item list-group-item-action">' +
+			        	name + '</button></div><div class="col-sm-2">' +
+			        	'<i class="fas fa-times Absolute-Center Sub"></i></div></div>'
+			        );
+
+			        
+			        $.ajax({
+			            url: '/record_activity',
+			            type: 'post',
+			            dataType: 'json',
+			            data: {
+			            	activity_name:name,
+			            	activity_desc:desc
+			            },
+			            success: function(result) {
+			                console.log("success")
+			            }
+			        });
+			    });
+
+			    $(document).on("click", "i", function(e) {
+			        // prevent form submission
+			        e.preventDefault();
+			        console.log("click");
+
+			        var row = $(this).closest('.activity');
+			        var name = row.find('button').text();
+			        console.log(name);
+
+			        row.remove();
+			        
+			        $.ajax({
+			            url: '/delete_activity',
+			            type: 'post',
+			            dataType: 'json',
+			            data: {
+			            	activity_name:name
+			            },
+			            success: function(result) {
+			                console.log("success")
+			            }
+			        });
+			    });
+			});
+		</script>
  	{% endif %}
 {% endblock content %}

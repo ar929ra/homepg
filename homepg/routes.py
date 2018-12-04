@@ -1,6 +1,6 @@
 from flask import render_template, url_for, flash, redirect, request
 from homepg import app, db, bcrypt
-from homepg.models import User, Household
+from homepg.models import User, Household, Activity
 from homepg.forms import RegistrationForm, LoginForm, CreateHome
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -12,7 +12,7 @@ def home():
 @app.route("/my_home", methods=['GET', 'POST'])
 def my_home():
     if not current_user.is_authenticated:
-        return render_template('home.html')
+        return redirect(url_for('home.html'))
 
     this_user = User.query.filter_by(email = current_user.email).first()
 
@@ -23,7 +23,14 @@ def my_home():
         db.session.commit()
 
     household_len = len(this_user.households)
-    return render_template('my_home.html', household = household_len, form = form)
+    activities = this_user.activities
+
+    return render_template(
+        'my_home.html', 
+        household = household_len, 
+        form = form,
+        activities = activities
+    )
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
@@ -62,6 +69,41 @@ def login():
             flash('Login Unsuccessful. Please check email and password', 'danger')
 
     return render_template('login.html', title='Login', form=form)
+
+@app.route("/record_activity", methods=['POST'])
+def record_activity():
+    if request.method == "POST":
+
+        activity_name = request.form['activity_name']
+        activity_desc = request.form['activity_desc']
+
+        this_user = User.query.filter_by(email = current_user.email).first()
+
+        activity = Activity(name = activity_name, description = activity_desc)
+        this_user.activities.append(activity)
+        db.session.commit()
+
+        return "Submitted activity"
+
+    return redirect(url_for('my_home'))
+
+@app.route("/delete_activity", methods=['POST'])
+def delete_activity():
+    if request.method == "POST":
+
+        activity_name = request.form['activity_name'].lower().strip().replace("\n","").replace("\t","")
+        this_user_id = current_user.id
+        
+        db.engine.execute(
+            "DELETE FROM activity WHERE user_id = {0} AND lower(name) = \'{1}\'".format(
+                this_user_id, activity_name) 
+        )
+        db.session.commit()
+
+        return "Removed activity"
+
+    return redirect(url_for('my_home'))
+
 
 @app.route("/logout")
 def logout():

@@ -19,11 +19,18 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable = False)
 
     households = db.relationship("Household", secondary = association_table)
+    activities = db.relationship("Activity", backref = "user")
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image_file}', '{self.household_id}')"
 
-
 class Household(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(20), nullable = False)
+
+class Activity(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(30), nullable = False)
+    description = db.Column(db.String(150), nullable = False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
